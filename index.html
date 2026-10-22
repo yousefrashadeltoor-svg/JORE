@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="واجهة ويب خفيفة لتحليل روابط الوسائط وتنزيل المحتوى المسموح به باستخدام yt-dlp.">
+  <meta name="api-base" content="">
+  <title>Flux — Media Downloader</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Flux home"><span class="brand-mark">F</span><span>flux<span class="brand-dot">.</span></span></a>
+      <div class="top-actions">
+        <button class="icon-button" id="langToggle" aria-label="Switch language" title="English / العربية">ع / EN</button>
+        <button class="icon-button" id="themeToggle" aria-label="Toggle theme" title="تغيير المظهر"><span id="themeGlyph">☼</span></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span class="pulse"></span><span data-i18n="eyebrow">أداة وسائط بسيطة وسريعة</span></div>
+        <h1 data-i18n="headline">كل فيديو يبدأ <span>برابط.</span></h1>
+        <p class="hero-copy" data-i18n="subhead">الصق الرابط، استعرض التفاصيل، واختار الجودة والصيغة المناسبة ليك.</p>
+        <form class="url-form" id="analyzeForm">
+          <span class="link-symbol" aria-hidden="true">↗</span>
+          <input id="urlInput" type="url" inputmode="url" autocomplete="url" placeholder="الصق رابط الفيديو هنا..." aria-label="رابط الفيديو" required>
+          <button class="primary-button" id="analyzeButton" type="submit"><span data-i18n="analyze">تحليل الرابط</span><span aria-hidden="true">→</span></button>
+        </form>
+        <div class="privacy-note"><span class="shield">◇</span><span data-i18n="privacy">التحليل يتم عبر الخادم المتصل بالتطبيق. استخدم الروابط والمحتوى المسموح لك بتنزيله فقط.</span></div>
+      </section>
+
+      <section class="notice hidden" id="notice" role="status" aria-live="polite"></section>
+
+      <section class="result-layout hidden" id="resultSection">
+        <article class="video-panel panel">
+          <div class="section-heading"><div><span class="section-kicker" data-i18n="previewKicker">معاينة المحتوى</span><h2 data-i18n="previewTitle">تفاصيل الفيديو</h2></div><span class="status-pill" id="sourceStatus">READY</span></div>
+          <div class="video-preview" id="videoPreview">
+            <img id="thumbnail" alt="صورة الفيديو المصغرة" class="thumbnail hidden">
+            <video id="previewVideo" class="preview-video hidden" controls playsinline preload="none"></video>
+            <div class="preview-placeholder" id="previewPlaceholder"><span class="play-icon">▶</span><span data-i18n="previewPlaceholder">ستظهر صورة الفيديو هنا</span></div>
+            <button id="openPreview" class="preview-open hidden" type="button" data-i18n="openPreview">فتح المعاينة</button>
+          </div>
+          <div class="video-meta">
+            <h3 id="videoTitle">—</h3>
+            <div class="meta-line"><span id="videoUploader">—</span><span class="meta-dot">•</span><span id="videoDuration">—</span></div>
+            <div class="meta-chips"><span id="videoSite" class="chip">—</span><span id="videoId" class="chip muted-chip">—</span></div>
+          </div>
+        </article>
+
+        <section class="formats-panel panel">
+          <div class="section-heading"><div><span class="section-kicker" data-i18n="formatsKicker">اختيارك بالكامل</span><h2 data-i18n="formatsTitle">الجودة والصيغة</h2></div><span class="format-count" id="formatCount">0</span></div>
+          <div class="format-toolbar">
+            <div class="segmented" role="tablist" aria-label="نوع التنزيل">
+              <button type="button" class="segment active" data-kind="video" data-i18n="videoTab">فيديو</button>
+              <button type="button" class="segment" data-kind="audio" data-i18n="audioTab">صوت فقط</button>
+            </div>
+            <label class="sort-control"><span data-i18n="sortLabel">الترتيب</span><select id="sortSelect"><option value="quality" data-i18n="sortQuality">الجودة</option><option value="size" data-i18n="sortSize">الحجم</option></select></label>
+          </div>
+          <div class="format-list" id="formatList"><div class="empty-state" data-i18n="emptyFormats">حلّل رابطًا لعرض الصيغ المتاحة.</div></div>
+          <div class="advanced-toggle-row"><button id="advancedToggle" class="text-button" type="button"><span data-i18n="advanced">إعدادات متقدمة</span><span id="advancedChevron">＋</span></button></div>
+          <div class="advanced-options hidden" id="advancedOptions">
+            <label class="field-label"><span data-i18n="containerLabel">حاوية الملف</span><select id="containerSelect"><optgroup label="Video"><option value="auto" data-i18n="autoOption">تلقائي — الأفضل للمصدر</option><option value="mp4">MP4</option><option value="mkv">MKV</option><option value="webm">WebM</option></optgroup><optgroup label="Audio"><option value="source">Source audio</option><option value="mp3">MP3</option><option value="m4a">M4A</option><option value="wav">WAV</option><option value="flac">FLAC</option><option value="opus">OPUS</option></optgroup></select></label>
+            <label class="field-label"><span data-i18n="subtitleLabel">الترجمة</span><select id="subtitleSelect"><option value="none" data-i18n="noSubtitles">بدون ترجمة</option><option value="all" data-i18n="allSubtitles">تنزيل الترجمات المتاحة</option></select></label>
+            <label class="check-row"><input id="embedSubtitles" type="checkbox"><span data-i18n="embedSubtitles">تضمين الترجمة في الملف (لو أمكن)</span></label>
+            <p class="advanced-help" data-i18n="advancedHelp">الصيغ النهائية تعتمد على المصدر والأدوات المثبتة. التحويل قد يستغرق وقتًا إضافيًا.</p>
+          </div>
+          <div class="download-actions"><button id="downloadButton" class="primary-button wide" type="button" disabled><span data-i18n="download">تنزيل الاختيار</span><span aria-hidden="true">↓</span></button><p class="fine-print" data-i18n="downloadHint">سيبدأ تجهيز الملف على الخادم قبل إرساله للمتصفح.</p></div>
+        </section>
+      </section>
+
+      <section class="jobs-section hidden" id="jobsSection">
+        <div class="section-heading"><div><span class="section-kicker" data-i18n="activityKicker">حالة العملية</span><h2 data-i18n="activityTitle">التنزيل الحالي</h2></div><span class="live-indicator"><span></span><span data-i18n="liveStatus">مباشر</span></span></div>
+        <article class="job-card panel" id="jobCard">
+          <div class="job-top"><div class="job-file-icon">↓</div><div class="job-name"><strong id="jobTitle">—</strong><span id="jobStatus">—</span></div><strong class="job-percent" id="jobPercent">0%</strong></div>
+          <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+          <div class="job-stats"><span id="jobBytes">—</span><span id="jobSpeed">—</span><span id="jobEta">—</span></div>
+          <div class="job-footer"><span id="jobMessage" aria-live="polite"></span><button id="cancelButton" class="danger-button hidden" type="button" data-i18n="cancel">إلغاء</button></div>
+        </article>
+      </section>
+
+      <section class="how-section">
+        <div class="how-card"><span class="how-number">01</span><h3 data-i18n="step1Title">الصق الرابط</h3><p data-i18n="step1Text">ضع رابطًا عامًا يدعمه محرك yt-dlp.</p></div>
+        <div class="how-card"><span class="how-number">02</span><h3 data-i18n="step2Title">اختار الصيغة</h3><p data-i18n="step2Text">راجع الجودة والحجم المتاحين قبل التنزيل.</p></div>
+        <div class="how-card"><span class="how-number">03</span><h3 data-i18n="step3Title">نزّل الملف</h3><p data-i18n="step3Text">تابع حالة المعالجة ثم احفظ الملف على جهازك.</p></div>
+      </section>
+    </main>
+    <footer class="footer"><span>flux<span class="brand-dot">.</span></span><span data-i18n="footer">واجهة مفتوحة المصدر مبنية حول yt-dlp</span><a href="https://github.com/yt-dlp/yt-dlp" target="_blank" rel="noreferrer">yt-dlp ↗</a></footer>
+  </div>
+  <script src="/script.js" defer></script>
+</body>
+</html>
